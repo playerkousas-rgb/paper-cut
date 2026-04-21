@@ -3,14 +3,14 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Basic deps + Blender deps
+# 關鍵修正：加入了 xz-utils 來解壓 Blender 壓縮檔
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl unzip python3 python3-pip \
+    ca-certificates curl unzip xz-utils python3 python3-pip \
     libx11-6 libxi6 libxrender1 libxext6 libgl1 libglib2.0-0 \
-    libsm6 libice6 \
+    libsm6 libice6 libxkbcommon0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Blender (headless)
-# Note: For production, pin exact Blender version.
 ARG BLENDER_VERSION=4.1.1
 RUN curl -L -o /tmp/blender.tar.xz \
     https://download.blender.org/release/Blender4.1/blender-${BLENDER_VERSION}-linux-x64.tar.xz \
@@ -28,6 +28,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
 
 WORKDIR /app
 
+# 確保 package.json 在根目錄，這樣 npm ci 才能抓到
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
